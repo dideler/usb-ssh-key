@@ -1,22 +1,46 @@
 #!/usr/bin/env bash -e
 
-# Script to load keys and (force) eject.
-# If no hour value is given for the key's lifetime, it defaults to 10 hours.
-#
-# Usage (OS X):
-#   /Volumes/keys/load <optional hour value>
-#   <enter decryption password>
-
-HOURS="$1"
 DIR="/Volumes/keys"
 KEY="$DIR/id_rsa"
 
-if [ -z $HOURS ]; then
-  HOURS=10
+delete_ids='false'
+hours='10'
+
+if [ "$(uname -s)" != 'Darwin' ]; then
+  echo "(!) This script has only been tested on OS X machines; aborting..."
+  exit
 fi
 
-/usr/bin/ssh-add -D  # Delete all identities on the machine.
-/usr/bin/ssh-add -t ${HOURS}H $KEY
+print_help() { cat <<HELP
+Usage: $script_name [-t time_in_hours] [-d delete_identities_on_machine]
+
+Loads your SSH key for 10 hours or time specified and (force) ejects the volume.
+
+Using a pairing machine?
+Consider deleting all identities on the machine (-d) before loading the new key.
+
+Example usage:
+  *Insert USB that contains an SSH key and this script*
+  /Volumes/keys/load -t 8
+  *Unplug USB and code for 8 hours*
+HELP
+}
+
+while getopts 'dt:h' flag; do
+  case "${flag}" in
+    d) delete_ids='true' ;;
+    t) hours="${OPTARG}" ;;
+    h) print_help; exit ;;
+    *) print_help; exit ;;
+  esac
+done
+
+if [ "$delete_ids" = 'true' ]; then
+  /usr/bin/ssh-add -D
+fi
+
+/usr/bin/ssh-add -t ${hours}H $KEY
+
 if [ $? -eq 0 ]; then
   /usr/sbin/diskutil umount force $DIR
 else
