@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 
 # Script to load keys and (force) eject.
 # If no hour value is given for the key's lifetime, it defaults to 10 hours.
