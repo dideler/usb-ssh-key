@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Script to load keys and (force) eject.
+# If no hour value is given for the key's lifetime, it defaults to 10 hours.
+#
+# Usage (OS X):
+#   /Volumes/keys/load <optional hour value>
+#   <enter decryption password>
+
+HOURS="$1"
+DIR="/Volumes/keys"
+KEY="$DIR/id_rsa"
+
+if [ -z $HOURS ]; then
+  HOURS=10
+fi
+
+/usr/bin/ssh-add -D  # Delete all identities on the machine.
+/usr/bin/ssh-add -t ${HOURS}H $KEY
+if [ $? -eq 0 ]; then
+  /usr/sbin/diskutil umount force $DIR
+else
+  echo "Could not add the identity. Please try again."
+fi
