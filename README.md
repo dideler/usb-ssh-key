@@ -4,74 +4,92 @@ Making USB drives useful again.
 
 ## What?
 
-Instructions for putting your encrypted SSH key on an encrypted USB drive.
+Instructions for putting your encrypted SSH key on an encrypted USB drive.  
 Plus a script for conveniently loading the key.
+
+## How?
+
+[Put your SSH key on a USB drive](#create-your-own-usb-ssh-key), then
+
+1. Insert USB and load SSH key
+
+  ```shell
+  /Volumes/keys/load  # Loads the key for 10 hours then force ejects
+  ```
+1. Unplug USB drive
+
+Repeat steps 1-2 when key expires.
 
 ## Why?
 
-### For the purist pair programmer
+### Pair programming
 
-You pair program. You use pairing machines. You rotate pairs often. You ping pong. You use [git-duet].
+Pairs can benefit from using SSH keys on USB drives in their workflow.
 
-But you use a shared key that's stored on the machine... oh the horror!
+Pairing machines should not store any personal state on them.  
+Loading a key from USB lets you treat pairing machines as shared temporary devices.  
+[*Treat your pairing machines as cattle, not pets*][cattle]
 
-Be proud of your code and brand it with your real identity.  
-Just carry your slick USB drive with you.
+If you rotate pairs often, it's not recommended you load your own key whenever you drive.
+Load one of your keys at the start of the pairing session and use [git-duet].
+It allows a commit to have a different author and committer.
 
-Plug, load, unplug, pair, rotate, repeat, ???, profit.
+### Security
 
-### For the security conscious
-<dl>
-  <dt><strong>Multi-factor authentication</strong></dt>
-  <dd>
-    Identification is provided with a combination of different components;
-    something the user knows and something the user possesses.
-    Only the correct combination of a USB drive and multiple passphrases allows
-    the key to be used.
-  </dd>
+#### Multi-factor authentication
 
-  <dt><strong>SSH Agent</strong></dt>
-  <dd>TODO</dd>
+Identification is provided with a combination of different components;
+something the user knows and something the user possesses.
+Only the correct combination of a USB drive and passphrases allows the key to be used.
 
-  <dt><strong>Encryption</strong></dt>
-  <dd>Both the USB drive and SSH key are encrypted.</dd>
+#### Encryption
 
-  <dt><strong>Timeouts</strong></dt>
-  <dd>allows for a timeout to be set on the validity of keys. After a certain amount of time, you’ll need to type your passphrase again to unlock it.</dd>
-</dl>
+Both the USB drive and SSH key are encrypted.
 
+This means you'll have to decrypt the drive with a passphrase, and then decrypt the key with a passphrase.
 
+#### SSH Agent
+
+The script interacts with your key via an SSH Agent*.
+This means you don't need to repeat the tedious step of typing a passphrase whenever you use the key.
+Instead you type it once per login session.
+
+The most secure place to store the unencrypted key is in program memory.
+The key is stored in the memory associated with the ssh-agent process, which runs the duration of a local
+login session. The ssh-agent handles communication for any signing operations.
+
+When you decrypt the private key The key is stored in memory
+
+When a key is added to an agent, it's kept in memory and the agent issue signing operations to the programs in need
+
+The main advantage of an ssh-agent over the standard public key authentication is that all the magic happens in the ssh-agent process.
+The ssh process never has access to the key material, which makes it less vulnerable to memory content leaks.
+
+The OpenSSH ssh-agent also has protection against tampering, making it hard for a hacker (without root access)
+to extract private keys from the cache, as most debugging interfaces will not be available.
 
 (extract)
-For added security (for instance, against an attacker that can read any file on
-the local filesystem), it is common to store the private key in an encrypted
-form, where the encryption key is computed from a passphrase that the user has
-memorized. Because typing the passphrase can be tedious, many users would prefer
-to enter it just once per local login session. The most secure place to store
-the unencrypted key is in program memory, and in Unix-like operating systems,
-memory is normally associated with a process. A normal SSH client process cannot
+A normal SSH client process cannot
 be used to store the unencrypted key because SSH client processes only last the
 duration of a remote login session. Therefore, users run a program called
 ssh-agent that runs the duration of a local login session, stores unencrypted
 keys in memory, and communicates with SSH clients using a Unix domain socket.
 
-(clean)
-In addition to multi-factor authentication, the script also uses an SSH Agent.
-When a key is added to an agent, it's kept in memory and the agent issue signing operations to the programs in need
+<sup>* An SSH Agent will need to be pre-installed on the machine.</sup>
 
-(extract)
-The main advantage of the ssh-agent over the standard public key authentication is that all the magic happens in the ssh-agent process. The ssh process never has access to the key material, which makes it less vulnerable to memory content leaks (does that ring a bell ?). If you were using the SSH agent till today (with a passphrase), the OpenSSH client roaming bug did not impact your private keys.
 
-(maybe)
-The OpenSSH ssh-agent also has protection against tampering, making it hard for a hacker (without root access) to extract private keys from the cache, as most debugging interfaces will not be available.
+#### Timeouts
 
+allows for a timeout to be set on the validity of keys. After a certain amount of time, you’ll need to type your passphrase again to unlock it.
 
 
 Disclaimer: Use at your own risk. Host machine may not be safe.
 
-## How?
+## Create your own USB SSH key
 
-### Format and encrypt the drive
+### Mac OS X
+
+#### 1. Format and encrypt the drive
 
 Find a suitable USB drive. I'm fond of the sleek
 [Kingston DataTraveler drives][kingston] with metal casing,
@@ -86,16 +104,20 @@ TODO: add passphrase if missing (or create new key)
 ssh-keygen -p -f ~/.ssh/id_rsa
 ```
 
-### Add SSH key to drive
+#### 2. Add SSH key to drive
 
 There is no way to recover a lost passphrase. If the passphrase is lost or
 forgotten, a new key must be generated and the corresponding public key copied
 to other machines.
 
-### Optional extras
+### Ubuntu Linux
+
+TODO
+
+### Extras (optional)
 
 It's good to have a backup. The easiest way is to repeat the above steps for
-another USB drive, but using the same key instead of creating a new one.
+another USB drive, using the same key instead of creating a new one.
 Store it in a safe place, like a safe or fireproof box.
 
 For even more SSH tips, read https://blog.0xbadc0de.be/archives/300
@@ -103,8 +125,8 @@ For even more SSH tips, read https://blog.0xbadc0de.be/archives/300
 ## Credits
 
 This repository is a fork of [Tammer Saleh's blog post][tsaleh].
-It's where I learned how to do this.
 
+[cattle]: http://webcache.googleusercontent.com/search?q=cache:VwaEoCsPugAJ:blog.doismellburning.co.uk/treat-your-servers-like-cattle-not-like-pets&num=1&hl=en&gl=uk&strip=1&vwsrc=0
 [git-duet]: https://github.com/git-duet/git-duet
 [kingston]: http://www.kingston.com/en/usb/personal_business
 [tsaleh]: http://tammersaleh.com/posts/building-an-encrypted-usb-drive-for-your-ssh-keys-in-os-x/
