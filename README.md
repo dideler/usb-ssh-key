@@ -92,6 +92,16 @@ There is no way to recover a lost passphrase. If the passphrase is lost or
 forgotten, a new key must be generated and the corresponding public key copied
 to other machines.
 
+### Temporarily load SSH key
+
+Insert the USB drive into the computer you'll be using.
+Run the script to load your key, e.g. `/Volumes/keys/load`.
+Unplug the drive and start coding.
+
+By default, the key stays loaded for 10 hours. Can modify with `-t <hours>` flag.
+
+Using a pairing machine? Consider deleting all identities on the machine with `-d` flag.
+
 ### Optional extras
 
 It's good to have a backup. The easiest way is to repeat the above steps for
